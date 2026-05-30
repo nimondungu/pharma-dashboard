@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PharmaTrack EA — Stock Intelligence Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="dark"]{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;--accent:#00d4aa;--accent2:#f59e0b;--danger:#ef4444;--warning:#f97316;--safe:#22c55e;--text:#e2e8f0;--text-muted:#64748b;--text-dim:#94a3b8;--modal-bg:rgba(0,0,0,0.8);--shadow:0 8px 32px rgba(0,0,0,0.5)}
+[data-theme="light"]{--bg:#f0f4f8;--surface:#ffffff;--surface2:#e8edf3;--border:#cbd5e1;--accent:#0891b2;--accent2:#d97706;--danger:#dc2626;--warning:#ea580c;--safe:#16a34a;--text:#0f172a;--text-muted:#64748b;--text-dim:#475569;--modal-bg:rgba(0,0,0,0.5);--shadow:0 8px 32px rgba(0,0,0,0.15)}
+[data-theme="forest"]{--bg:#0d1f0e;--surface:#122214;--surface2:#1a2e1b;--border:#2d4a2e;--accent:#4ade80;--accent2:#fbbf24;--danger:#f87171;--warning:#fb923c;--safe:#86efac;--text:#dcfce7;--text-muted:#6b7280;--text-dim:#9ca3af;--modal-bg:rgba(0,0,0,0.8);--shadow:0 8px 32px rgba(0,0,0,0.5)}
+[data-theme="ocean"]{--bg:#020b18;--surface:#071525;--surface2:#0d2340;--border:#1e3a5f;--accent:#38bdf8;--accent2:#fb923c;--danger:#f87171;--warning:#fbbf24;--safe:#34d399;--text:#e0f2fe;--text-muted:#4b7097;--text-dim:#7ba7c9;--modal-bg:rgba(0,0,0,0.85);--shadow:0 8px 32px rgba(0,0,0,0.6)}
+[data-theme="rose"]{--bg:#1a0a0f;--surface:#220d14;--surface2:#2e1020;--border:#4a1c2e;--accent:#f472b6;--accent2:#fbbf24;--danger:#fb7185;--warning:#fb923c;--safe:#86efac;--text:#fce7f3;--text-muted:#9d6b7e;--text-dim:#c48499;--modal-bg:rgba(0,0,0,0.85);--shadow:0 8px 32px rgba(0,0,0,0.6)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+.header{background:linear-gradient(135deg,var(--bg) 0%,var(--surface2) 60%,var(--bg) 100%);border-bottom:1px solid var(--border);padding:16px 20px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(0,212,170,0.07) 0%,transparent 70%);pointer-events:none}
+.header-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);line-height:1.2}
+.header-sub{font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.header-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);padding:5px 12px;border-radius:20px}
+.theme-switcher{display:flex;gap:5px;align-items:center}
+.theme-btn{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .2s,border-color .2s;outline:none}
+.theme-btn:hover,.theme-btn.active{transform:scale(1.2);border-color:var(--text)}
+.theme-btn[data-t="dark"]{background:linear-gradient(135deg,#0a0e1a,#00d4aa)}
+.theme-btn[data-t="light"]{background:linear-gradient(135deg,#f0f4f8,#0891b2)}
+.theme-btn[data-t="forest"]{background:linear-gradient(135deg,#0d1f0e,#4ade80)}
+.theme-btn[data-t="ocean"]{background:linear-gradient(135deg,#020b18,#38bdf8)}
+.theme-btn[data-t="rose"]{background:linear-gradient(135deg,#1a0a0f,#f472b6)}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;padding:16px 20px 0}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+.kpi-card:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 4px 20px rgba(0,212,170,0.1)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi-card.danger::before{background:var(--danger)}
+.kpi-card.warning::before{background:var(--warning)}
+.kpi-card.info::before{background:var(--accent)}
+.kpi-card.safe::before{background:var(--safe)}
+.kpi-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-bottom:6px}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:30px;line-height:1;color:var(--text)}
+.kpi-card.danger .kpi-val{color:#fca5a5}
+.kpi-card.warning .kpi-val{color:#fcd34d}
+.kpi-sub{font-size:10px;color:var(--text-muted);margin-top:4px}
+.kpi-click-hint{font-size:9px;color:var(--accent);margin-top:4px;font-family:'IBM Plex Mono',monospace;opacity:.7}
+.tabs-bar{display:flex;gap:4px;padding:16px 20px 0;overflow-x:auto;scrollbar-width:none}
+.tabs-bar::-webkit-scrollbar{display:none}
+.tab-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 16px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.tab-btn.active{background:var(--accent);color:#0a0e1a;border-color:var(--accent);font-weight:600}
+.tab-content{display:none;padding:16px 20px}
+.tab-content.active{display:block}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.filter-label{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+select,input[type=text],input[type=email]{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Sora',sans-serif;font-size:11px;padding:6px 10px;border-radius:7px;outline:none;transition:border-color .2s;cursor:pointer}
+select:focus,input:focus{border-color:var(--accent)}
+input[type=text]{min-width:150px}
+.filter-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:6px 12px;border-radius:7px;cursor:pointer;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+.multi-select-wrap{position:relative;display:inline-block}
+.multi-select-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Sora',sans-serif;font-size:11px;padding:6px 28px 6px 10px;border-radius:7px;cursor:pointer;transition:border-color .2s;min-width:130px;text-align:left;position:relative}
+.multi-select-btn::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:10px}
+.multi-select-btn.has-selection{border-color:var(--accent);color:var(--accent)}
+.multi-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;min-width:180px;box-shadow:var(--shadow);display:none;max-height:220px;overflow-y:auto}
+.multi-dropdown.open{display:block}
+.multi-option{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:11px;transition:background .15s}
+.multi-option:hover{background:var(--surface2)}
+.multi-option input[type=checkbox]{accent-color:var(--accent);width:13px;height:13px;cursor:pointer}
+.chip-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.chip{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);color:var(--accent);font-size:9px;font-family:'IBM Plex Mono',monospace;padding:2px 7px;border-radius:12px;display:flex;align-items:center;gap:4px}
+.chip .chip-x{cursor:pointer;opacity:.7}
+.chip .chip-x:hover{opacity:1}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:650px}
+th{background:var(--surface2);color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10}
+td{padding:10px 14px;border-bottom:1px solid rgba(30,45,69,.5);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02);cursor:pointer}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:600;letter-spacing:.04em}
+.pill.expired{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+.pill.critical{background:rgba(249,115,22,.15);color:#fdba74;border:1px solid rgba(249,115,22,.3)}
+.pill.warning{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+.pill.safe{background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.2)}
+.country-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.country-tag.KENYA{background:rgba(0,212,170,.1);color:var(--accent)}
+.country-tag.UGANDA{background:rgba(245,158,11,.1);color:var(--accent2)}
+.country-tag.TANZANIA{background:rgba(139,92,246,.1);color:#c4b5fd}
+.section-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:9px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--text-muted)}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:12px;flex-wrap:wrap}
+.page-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .2s}
+.page-btn:hover,.page-btn.active{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+.page-info{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:0 4px}
+.bar-group{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:28px}
+.bar{border-radius:4px 4px 0 0;min-width:18px;width:100%;position:relative;transition:opacity .2s}
+.bar:hover{opacity:.8}
+.bar-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:8px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;color:var(--text-dim)}
+.bar-label{font-size:8px;font-family:'IBM Plex Mono',monospace;color:var(--text-muted);text-align:center;word-break:break-all;line-height:1.2}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.chart-title{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px}
+.alert-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:border-color .2s}
+.alert-item:hover{border-color:var(--warning)}
+.alert-drug{font-weight:600;font-size:12px;color:var(--text)}
+.alert-meta{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.stock-bar-wrap{display:flex;align-items:center;gap:6px}
+.stock-bar{height:4px;border-radius:2px;background:var(--border);width:50px;overflow:hidden;flex-shrink:0}
+.stock-bar-fill{height:100%;border-radius:2px;background:var(--accent)}
+.portfolio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.portfolio-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:transform .2s,border-color .2s}
+.portfolio-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.currency-note{font-size:9px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:12px;display:inline-block}
+
+/* EMAIL ALERT PANEL */
+.alert-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.alert-panel-title{font-family:'DM Serif Display',serif;font-size:15px;color:var(--text);margin-bottom:4px}
+.alert-panel-sub{font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-bottom:16px}
+.alert-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.alert-form-group{display:flex;flex-direction:column;gap:4px}
+.alert-form-label{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.alert-form input[type=email]{min-width:220px;font-size:12px;padding:8px 12px}
+.alert-send-btn{background:var(--accent);border:none;color:#0a0e1a;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:8px 18px;border-radius:7px;cursor:pointer;transition:opacity .2s;white-space:nowrap}
+.alert-send-btn:hover{opacity:.85}
+.alert-send-btn:disabled{opacity:.4;cursor:not-allowed}
+.alert-status{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:6px 12px;border-radius:6px;display:none}
+.alert-status.success{background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.2);display:block}
+.alert-status.error{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2);display:block}
+.alert-threshold{display:flex;align-items:center;gap:8px}
+.alert-threshold select{min-width:120px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:var(--modal-bg);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:680px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.96) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--surface);z-index:2}
+.modal-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text)}
+.modal-close{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.modal-close:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.modal-body{padding:18px 20px}
+.modal-section{margin-bottom:16px}
+.modal-section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.info-item{background:var(--surface2);border-radius:8px;padding:8px 10px}
+.info-label{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.info-val{font-size:13px;font-weight:600;color:var(--text);margin-top:2px}
+.compare-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.compare-card{flex:1;min-width:120px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:border-color .2s}
+.compare-card:hover{border-color:var(--accent)}
+.compare-val{font-family:'DM Serif Display',serif;font-size:18px;color:var(--accent)}
+.compare-sub{font-size:9px;color:var(--text-muted);margin-top:2px}
+.kpi-detail-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.kpi-detail-item{background:var(--surface2);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;cursor:pointer;transition:background .15s}
+.kpi-detail-item:hover{background:var(--border)}
+.footer{text-align:center;padding:20px;font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;border-top:1px solid var(--border);margin-top:20px}
+
+@media(max-width:600px){
+  .header{padding:12px 14px}
+  .header-title{font-size:15px}
+  .kpi-row{grid-template-columns:repeat(2,1fr);padding:12px 14px 0;gap:8px}
+  .kpi-val{font-size:22px}
+  .tabs-bar{padding:12px 14px 0}
+  .tab-btn{font-size:10px;padding:6px 10px}
+  .tab-content{padding:12px 14px}
+  .charts-grid{grid-template-columns:1fr}
+  .alert-form{flex-direction:column}
+  .alert-form input[type=email]{min-width:100%;width:100%}
+  .portfolio-grid{grid-template-columns:repeat(2,1fr)}
+  .info-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-icon">💊</div>
+      <div>
+        <div class="header-title">PharmaTrack EA</div>
+        <div class="header-sub">East Africa · Stock Intelligence Dashboard</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="theme-switcher" title="Switch Theme">
+        <div class="theme-btn active" data-t="dark" onclick="setTheme('dark')" title="Dark"></div>
+        <div class="theme-btn" data-t="light" onclick="setTheme('light')" title="Light"></div>
+        <div class="theme-btn" data-t="forest" onclick="setTheme('forest')" title="Forest"></div>
+        <div class="theme-btn" data-t="ocean" onclick="setTheme('ocean')" title="Ocean"></div>
+        <div class="theme-btn" data-t="rose" onclick="setTheme('rose')" title="Rose"></div>
+      </div>
+      <div class="header-date" id="liveDate"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div class="kpi-row" id="kpiRow"></div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('expiry')">📋 Expiry Tracker</button>
+  <button class="tab-btn" onclick="switchTab('inventory')">📦 Inventory</button>
+  <button class="tab-btn" onclick="switchTab('analytics')">📊 Analytics</button>
+  <button class="tab-btn" onclick="switchTab('portfolio')">💰 Portfolio Value</button>
+  <button class="tab-btn" onclick="switchTab('alerts')">🔔 Email Alerts</button>
+</div>
+
+<!-- TAB: EXPIRY -->
+<div class="tab-content active" id="tab-expiry">
+  <div class="filters">
+    <span class="filter-label">Filter:</span>
+    <div class="multi-select-wrap">
+      <button class="multi-select-btn" id="cntBtn" onclick="toggleDropdown('cntDrop')">Country</button>
+      <div class="multi-dropdown" id="cntDrop">
+        <div class="multi-option"><input type="checkbox" value="KENYA" onchange="handleMulti('country',this)"> Kenya</div>
+        <div class="multi-option"><input type="checkbox" value="UGANDA" onchange="handleMulti('country',this)"> Uganda</div>
+        <div class="multi-option"><input type="checkbox" value="TANZANIA" onchange="handleMulti('country',this)"> Tanzania</div>
+      </div>
+    </div>
+    <div class="multi-select-wrap">
+      <button class="multi-select-btn" id="thrBtn" onclick="toggleDropdown('thrDrop')">Therapy Area</button>
+      <div class="multi-dropdown" id="thrDrop"></div>
+    </div>
+    <div class="multi-select-wrap">
+      <button class="multi-select-btn" id="stBtn" onclick="toggleDropdown('stDrop')">Status</button>
+      <div class="multi-dropdown" id="stDrop">
+        <div class="multi-option"><input type="checkbox" value="expired" onchange="handleMulti('status',this)"> 💀 Expired</div>
+        <div class="multi-option"><input type="checkbox" value="critical" onchange="handleMulti('status',this)"> 🔴 Critical</div>
+        <div class="multi-option"><input type="checkbox" value="warning" onchange="handleMulti('status',this)"> 🟡 Warning</div>
+        <div class="multi-option"><input type="checkbox" value="safe" onchange="handleMulti('status',this)"> 🟢 Safe</div>
+      </div>
+    </div>
+    <input type="text" id="searchInput" placeholder="Search drug / batch…" oninput="applyFilters()">
+    <button class="filter-btn" onclick="clearFilters()">✕ Clear</button>
+  </div>
+  <div class="chip-row" id="chipRow"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="section-title" style="margin:0">Batch Records <span class="badge" id="tableCount"></span></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Generic Name</th><th>Batch No.</th><th>Country</th><th>Therapy</th>
+          <th>Strength</th><th>Expiry Date</th><th>Status</th><th>Closing Units</th><th>Unit Price (KES)</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- TAB: INVENTORY -->
+<div class="tab-content" id="tab-inventory">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px">
+    <div class="chart-card">
+      <div class="chart-title">Overall Stock Movement</div>
+      <div id="stockSummaryChart"></div>
+    </div>
+    <div>
+      <div class="section-title" style="margin-bottom:10px">⚠️ Expiring Within 6 Months</div>
+      <div id="alertList"></div>
+    </div>
+  </div>
+  <div class="section-title">Full Stock Movement</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Generic Name</th><th>Country</th><th>Strength</th><th>Batch</th><th>Opening</th><th>Inwards</th><th>Outwards</th><th>Closing</th><th>Flow</th></tr>
+      </thead>
+      <tbody id="invBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB: ANALYTICS -->
+<div class="tab-content" id="tab-analytics">
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">By Therapy Area</div>
+      <div id="therapyChart" class="bar-chart" style="height:130px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Expiry Risk by Country</div>
+      <div id="countryRiskChart" class="bar-chart" style="height:130px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Expiry Timeline Brackets</div>
+      <div id="timelineChart" class="bar-chart" style="height:130px"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Top 10 Stock by Units</div>
+      <div id="stockChart" class="bar-chart" style="height:130px"></div>
+    </div>
+  </div>
+  <div class="section-title">Cross-Country Drug Comparison</div>
+  <div class="filters">
+    <span class="filter-label">Select Drug:</span>
+    <select id="compareSelect" onchange="renderComparison()"><option value="">— Choose generic drug —</option></select>
+  </div>
+  <div id="comparisonPanel"></div>
+</div>
+
+<!-- TAB: PORTFOLIO VALUE -->
+<div class="tab-content" id="tab-portfolio">
+  <div class="currency-note">💡 Unit prices are estimated averages in KES. Update the <code>UNIT_PRICES</code> object in the source code to match your actual data. 1 USD ≈ 130 KES.</div>
+  <div class="portfolio-grid" id="portfolioGrid"></div>
+  <div class="section-title">Drug Value Breakdown</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Generic Name</th><th>Strength</th><th>Country</th><th>Closing Units</th><th>Unit Price (KES)</th><th>Total Value (KES)</th><th>Total Value (USD)</th></tr>
+      </thead>
+      <tbody id="valueBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB: EMAIL ALERTS -->
+<div class="tab-content" id="tab-alerts">
+  <div class="alert-panel">
+    <div class="alert-panel-title">🔔 Configure Expiry Alert Emails</div>
+    <div class="alert-panel-sub">Enter any email address to receive a summary of at-risk batches. Uses EmailJS — free, no server needed.</div>
+    <div class="alert-form">
+      <div class="alert-form-group">
+        <div class="alert-form-label">Recipient Email</div>
+        <input type="email" id="alertEmail" placeholder="you@example.com">
+      </div>
+      <div class="alert-form-group">
+        <div class="alert-form-label">Alert Threshold</div>
+        <div class="alert-threshold">
+          <select id="alertThreshold">
+            <option value="3">Expiring ≤ 3 months</option>
+            <option value="6" selected>Expiring ≤ 6 months</option>
+            <option value="12">Expiring ≤ 12 months</option>
+            <option value="0">Expired only</option>
+          </select>
+        </div>
+      </div>
+      <div class="alert-form-group">
+        <div class="alert-form-label">Your Name (optional)</div>
+        <input type="text" id="alertName" placeholder="e.g. John Kamau" style="min-width:160px">
+      </div>
+      <button class="alert-send-btn" onclick="sendAlertEmail()">📧 Send Alert Now</button>
+    </div>
+    <div class="alert-status" id="alertStatus"></div>
+    <div style="margin-top:14px;font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;line-height:1.7">
+      <strong style="color:var(--text-dim)">How to activate email sending:</strong><br>
+      1. Go to <a href="https://www.emailjs.com" target="_blank" style="color:var(--accent)">emailjs.com</a> → create a free account<br>
+      2. Add an Email Service (Gmail works) → copy your <strong>Service ID</strong><br>
+      3. Create an Email Template → copy your <strong>Template ID</strong><br>
+      4. Copy your <strong>Public Key</strong> from Account → API Keys<br>
+      5. Replace the placeholder values in the <code>EMAILJS_CONFIG</code> object in this file's source code
+    </div>
+  </div>
+
+  <div class="section-title">📋 Current Alert Summary Preview</div>
+  <div id="alertPreview"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Detail</div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2025 [Your Name] &nbsp;·&nbsp; PharmaTrack EA &nbsp;·&nbsp; Personal Project &nbsp;·&nbsp; All Rights Reserved
+</div>
+
+<script>
+// ============================================================
+// EmailJS CONFIG — replace with your own keys from emailjs.com
+// ============================================================
+const EMAILJS_CONFIG = {
+  publicKey:  'YOUR_PUBLIC_KEY',    // Account → API Keys
+  serviceId:  'YOUR_SERVICE_ID',    // Email Services
+  templateId: 'YOUR_TEMPLATE_ID',   // Email Templates
+};
+
+// ============================================================
+// DATA — Generic names only, no brand names
+// ============================================================
+const RAW_DATA = [
+  {generic:"Amoxicillin Trihydrate",batch:"AM-KE-001",country:"KENYA",therapy:"Antibiotics",strength:"500mg",expiry:"2024-03-15",opening_stock:5000,inwards:1200,outwards:3800,closing_stock:2400},
+  {generic:"Amoxicillin Trihydrate",batch:"AM-UG-002",country:"UGANDA",therapy:"Antibiotics",strength:"500mg",expiry:"2025-09-20",opening_stock:3200,inwards:800,outwards:2100,closing_stock:1900},
+  {generic:"Amoxicillin Trihydrate",batch:"AM-TZ-003",country:"TANZANIA",therapy:"Antibiotics",strength:"500mg",expiry:"2026-11-10",opening_stock:4100,inwards:1500,outwards:2900,closing_stock:2700},
+  {generic:"Metformin HCl",batch:"MF-KE-010",country:"KENYA",therapy:"Diabetes",strength:"500mg",expiry:"2026-08-01",opening_stock:8000,inwards:2000,outwards:5000,closing_stock:5000},
+  {generic:"Metformin HCl",batch:"MF-UG-011",country:"UGANDA",therapy:"Diabetes",strength:"500mg",expiry:"2025-04-30",opening_stock:3000,inwards:500,outwards:2200,closing_stock:1300},
+  {generic:"Metformin HCl",batch:"MF-TZ-012",country:"TANZANIA",therapy:"Diabetes",strength:"850mg",expiry:"2027-02-28",opening_stock:2500,inwards:700,outwards:1400,closing_stock:1800},
+  {generic:"Atenolol",batch:"AT-KE-020",country:"KENYA",therapy:"Cardiovascular",strength:"50mg",expiry:"2025-07-15",opening_stock:4500,inwards:900,outwards:3100,closing_stock:2300},
+  {generic:"Atenolol",batch:"AT-UG-021",country:"UGANDA",therapy:"Cardiovascular",strength:"50mg",expiry:"2026-12-01",opening_stock:2800,inwards:600,outwards:1800,closing_stock:1600},
+  {generic:"Atenolol",batch:"AT-TZ-022",country:"TANZANIA",therapy:"Cardiovascular",strength:"100mg",expiry:"2026-05-20",opening_stock:1900,inwards:400,outwards:1200,closing_stock:1100},
+  {generic:"Omeprazole",batch:"OM-KE-030",country:"KENYA",therapy:"GI",strength:"20mg",expiry:"2024-11-01",opening_stock:6000,inwards:1500,outwards:4800,closing_stock:2700},
+  {generic:"Omeprazole",batch:"OM-UG-031",country:"UGANDA",therapy:"GI",strength:"20mg",expiry:"2026-03-15",opening_stock:3500,inwards:700,outwards:2100,closing_stock:2100},
+  {generic:"Omeprazole",batch:"OM-TZ-032",country:"TANZANIA",therapy:"GI",strength:"40mg",expiry:"2027-08-10",opening_stock:2000,inwards:500,outwards:1100,closing_stock:1400},
+  {generic:"Ciprofloxacin HCl",batch:"CF-KE-040",country:"KENYA",therapy:"Antibiotics",strength:"500mg",expiry:"2025-12-20",opening_stock:7000,inwards:2000,outwards:5500,closing_stock:3500},
+  {generic:"Ciprofloxacin HCl",batch:"CF-UG-041",country:"UGANDA",therapy:"Antibiotics",strength:"500mg",expiry:"2026-06-30",opening_stock:4000,inwards:900,outwards:2800,closing_stock:2100},
+  {generic:"Ciprofloxacin HCl",batch:"CF-TZ-042",country:"TANZANIA",therapy:"Antibiotics",strength:"250mg",expiry:"2025-03-10",opening_stock:3000,inwards:600,outwards:2400,closing_stock:1200},
+  {generic:"Amlodipine Besylate",batch:"AM2-KE-050",country:"KENYA",therapy:"Cardiovascular",strength:"5mg",expiry:"2026-09-01",opening_stock:5500,inwards:1200,outwards:3700,closing_stock:3000},
+  {generic:"Amlodipine Besylate",batch:"AM2-UG-051",country:"UGANDA",therapy:"Cardiovascular",strength:"5mg",expiry:"2027-01-15",opening_stock:2900,inwards:800,outwards:1900,closing_stock:1800},
+  {generic:"Amlodipine Besylate",batch:"AM2-TZ-052",country:"TANZANIA",therapy:"Cardiovascular",strength:"10mg",expiry:"2025-11-20",opening_stock:2100,inwards:500,outwards:1300,closing_stock:1300},
+  {generic:"Artemether + Lumefantrine",batch:"AL-KE-060",country:"KENYA",therapy:"Antimalarial",strength:"20/120mg",expiry:"2024-08-15",opening_stock:9000,inwards:3000,outwards:8000,closing_stock:4000},
+  {generic:"Artemether + Lumefantrine",batch:"AL-UG-061",country:"UGANDA",therapy:"Antimalarial",strength:"20/120mg",expiry:"2025-10-01",opening_stock:7500,inwards:2500,outwards:6000,closing_stock:4000},
+  {generic:"Artemether + Lumefantrine",batch:"AL-TZ-062",country:"TANZANIA",therapy:"Antimalarial",strength:"20/120mg",expiry:"2026-04-20",opening_stock:8500,inwards:2800,outwards:7200,closing_stock:4100},
+  {generic:"Tenofovir Disoproxil Fumarate",batch:"TF-KE-070",country:"KENYA",therapy:"ARV",strength:"300mg",expiry:"2027-06-15",opening_stock:12000,inwards:4000,outwards:9000,closing_stock:7000},
+  {generic:"Tenofovir Disoproxil Fumarate",batch:"TF-UG-071",country:"UGANDA",therapy:"ARV",strength:"300mg",expiry:"2027-09-30",opening_stock:10000,inwards:3000,outwards:7500,closing_stock:5500},
+  {generic:"Tenofovir Disoproxil Fumarate",batch:"TF-TZ-072",country:"TANZANIA",therapy:"ARV",strength:"300mg",expiry:"2026-12-15",opening_stock:11000,inwards:3500,outwards:8500,closing_stock:6000},
+  {generic:"Efavirenz",batch:"EF-KE-080",country:"KENYA",therapy:"ARV",strength:"600mg",expiry:"2026-10-01",opening_stock:8000,inwards:2500,outwards:6000,closing_stock:4500},
+  {generic:"Efavirenz",batch:"EF-UG-081",country:"UGANDA",therapy:"ARV",strength:"600mg",expiry:"2027-03-15",opening_stock:6000,inwards:2000,outwards:4500,closing_stock:3500},
+  {generic:"Efavirenz",batch:"EF-TZ-082",country:"TANZANIA",therapy:"ARV",strength:"600mg",expiry:"2025-08-20",opening_stock:7000,inwards:2200,outwards:5500,closing_stock:3700},
+  {generic:"Salbutamol Sulphate",batch:"SB-KE-090",country:"KENYA",therapy:"Respiratory",strength:"100mcg",expiry:"2025-06-30",opening_stock:4000,inwards:1000,outwards:3000,closing_stock:2000},
+  {generic:"Salbutamol Sulphate",batch:"SB-UG-091",country:"UGANDA",therapy:"Respiratory",strength:"100mcg",expiry:"2026-07-15",opening_stock:2500,inwards:600,outwards:1700,closing_stock:1400},
+  {generic:"Salbutamol Sulphate",batch:"SB-TZ-092",country:"TANZANIA",therapy:"Respiratory",strength:"100mcg",expiry:"2027-04-10",opening_stock:2000,inwards:500,outwards:1200,closing_stock:1300},
+  {generic:"Diclofenac Sodium",batch:"DC-KE-100",country:"KENYA",therapy:"Pain / Inflammation",strength:"50mg",expiry:"2024-05-10",opening_stock:5500,inwards:1500,outwards:4500,closing_stock:2500},
+  {generic:"Diclofenac Sodium",batch:"DC-UG-101",country:"UGANDA",therapy:"Pain / Inflammation",strength:"50mg",expiry:"2025-09-30",opening_stock:3200,inwards:700,outwards:2300,closing_stock:1600},
+  {generic:"Diclofenac Sodium",batch:"DC-TZ-102",country:"TANZANIA",therapy:"Pain / Inflammation",strength:"75mg",expiry:"2026-11-25",opening_stock:2800,inwards:600,outwards:1800,closing_stock:1600},
+  {generic:"Ibuprofen",batch:"IB-KE-110",country:"KENYA",therapy:"Pain / Inflammation",strength:"400mg",expiry:"2026-02-28",opening_stock:6000,inwards:1800,outwards:4500,closing_stock:3300},
+  {generic:"Ibuprofen",batch:"IB-UG-111",country:"UGANDA",therapy:"Pain / Inflammation",strength:"400mg",expiry:"2025-11-15",opening_stock:3800,inwards:900,outwards:2700,closing_stock:2000},
+  {generic:"Ibuprofen",batch:"IB-TZ-112",country:"TANZANIA",therapy:"Pain / Inflammation",strength:"200mg",expiry:"2027-06-30",opening_stock:2900,inwards:700,outwards:1800,closing_stock:1800},
+  {generic:"Lisinopril",batch:"LI-KE-120",country:"KENYA",therapy:"Cardiovascular",strength:"10mg",expiry:"2027-01-10",opening_stock:4500,inwards:1100,outwards:3100,closing_stock:2500},
+  {generic:"Lisinopril",batch:"LI-UG-121",country:"UGANDA",therapy:"Cardiovascular",strength:"10mg",expiry:"2025-05-20",opening_stock:2700,inwards:600,outwards:1900,closing_stock:1400},
+  {generic:"Lisinopril",batch:"LI-TZ-122",country:"TANZANIA",therapy:"Cardiovascular",strength:"20mg",expiry:"2026-09-15",opening_stock:2200,inwards:500,outwards:1400,closing_stock:1300},
+  {generic:"Fluconazole",batch:"FL-KE-130",country:"KENYA",therapy:"Antifungal",strength:"150mg",expiry:"2026-03-20",opening_stock:3500,inwards:800,outwards:2400,closing_stock:1900},
+  {generic:"Fluconazole",batch:"FL-UG-131",country:"UGANDA",therapy:"Antifungal",strength:"150mg",expiry:"2027-07-01",opening_stock:2200,inwards:500,outwards:1400,closing_stock:1300},
+  {generic:"Fluconazole",batch:"FL-TZ-132",country:"TANZANIA",therapy:"Antifungal",strength:"200mg",expiry:"2025-10-30",opening_stock:1800,inwards:400,outwards:1100,closing_stock:1100},
+];
+
+// Compute days/months dynamically
+const TODAY = new Date();
+RAW_DATA.forEach(r=>{
+  const exp=new Date(r.expiry);
+  r.days_to_expiry=Math.floor((exp-TODAY)/86400000);
+  r.months_to_expiry=Math.floor(r.days_to_expiry/30);
+  // short label for comparison (first word of generic)
+  r.drugKey=r.generic.split(' ')[0];
+});
+
+// Unit prices (KES) — update to your real prices
+const UNIT_PRICES={
+  "Amoxicillin":18,"Metformin":12,"Atenolol":15,"Omeprazole":22,
+  "Ciprofloxacin":25,"Amlodipine":20,"Artemether":45,"Tenofovir":35,
+  "Efavirenz":30,"Salbutamol":280,"Diclofenac":10,"Ibuprofen":8,
+  "Lisinopril":18,"Fluconazole":40
+};
+const USD_RATE=130;
+
+function getUnitPrice(r){
+  const key=r.generic.split(' ')[0];
+  return UNIT_PRICES[key]||20;
+}
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
+  localStorage.setItem('pharmatrack-theme',t);
+}
+(function(){const t=localStorage.getItem('pharmatrack-theme')||'dark';setTheme(t);})();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getStatus(r){
+  if(r.days_to_expiry<=0)return'expired';
+  if(r.months_to_expiry<=3)return'critical';
+  if(r.months_to_expiry<=6)return'warning';
+  return'safe';
+}
+function statusPill(r){
+  const s=getStatus(r);
+  const labels={expired:'EXPIRED',critical:'CRITICAL',warning:'WARNING',safe:'SAFE'};
+  const icons={expired:'💀',critical:'🔴',warning:'🟡',safe:'🟢'};
+  return`<span class="pill ${s}">${icons[s]} ${labels[s]}</span>`;
+}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtNum(n){return n==null||isNaN(n)?'—':Number(n).toLocaleString(undefined,{maximumFractionDigits:0});}
+
+document.getElementById('liveDate').textContent=TODAY.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+
+// Populate therapy dropdown
+const therapies=[...new Set(RAW_DATA.map(r=>r.therapy))].sort();
+therapies.forEach(t=>{
+  const d=document.createElement('div');d.className='multi-option';
+  d.innerHTML=`<input type="checkbox" value="${t}" onchange="handleMulti('therapy',this)"> ${t}`;
+  document.getElementById('thrDrop').appendChild(d);
+});
+
+// Populate compare select
+const drugs=[...new Set(RAW_DATA.map(r=>r.generic))].sort();
+drugs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;document.getElementById('compareSelect').appendChild(o);});
+
+// ============================================================
+// MULTI-SELECT
+// ============================================================
+const filterState={country:[],therapy:[],status:[]};
+function toggleDropdown(id){
+  document.querySelectorAll('.multi-dropdown').forEach(d=>{if(d.id!==id)d.classList.remove('open');});
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.multi-select-wrap'))document.querySelectorAll('.multi-dropdown').forEach(d=>d.classList.remove('open'));
+});
+function handleMulti(key,cb){
+  if(cb.checked)filterState[key].push(cb.value);
+  else filterState[key]=filterState[key].filter(v=>v!==cb.value);
+  updateBtnLabel(key);renderChips();applyFilters();
+}
+function updateBtnLabel(key){
+  const map={country:'cntBtn',therapy:'thrBtn',status:'stBtn'};
+  const labels={country:'Country',therapy:'Therapy Area',status:'Status'};
+  const btn=document.getElementById(map[key]);
+  const vals=filterState[key];
+  btn.textContent=vals.length?vals.join(', '):labels[key];
+  btn.classList.toggle('has-selection',vals.length>0);
+}
+function renderChips(){
+  const chips=[];
+  Object.entries(filterState).forEach(([k,vals])=>vals.forEach(v=>chips.push({key:k,val:v})));
+  document.getElementById('chipRow').innerHTML=chips.map(c=>`
+    <div class="chip">${c.val}<span class="chip-x" onclick="removeChip('${c.key}','${c.val}')">✕</span></div>
+  `).join('');
+}
+function removeChip(key,val){
+  filterState[key]=filterState[key].filter(v=>v!==val);
+  const dropMap={country:'cntDrop',therapy:'thrDrop',status:'stDrop'};
+  document.querySelectorAll(`#${dropMap[key]} input[value="${val}"]`).forEach(cb=>cb.checked=false);
+  updateBtnLabel(key);renderChips();applyFilters();
+}
+
+// ============================================================
+// FILTERS + KPI (reactive)
+// ============================================================
+let filteredData=[...RAW_DATA];
+let currentPage=1;
+const PAGE_SIZE=20;
+
+function applyFilters(){
+  const search=document.getElementById('searchInput').value.toLowerCase();
+  filteredData=RAW_DATA.filter(r=>{
+    if(filterState.country.length&&!filterState.country.includes(r.country))return false;
+    if(filterState.therapy.length&&!filterState.therapy.includes(r.therapy))return false;
+    if(filterState.status.length&&!filterState.status.includes(getStatus(r)))return false;
+    if(search&&!r.generic.toLowerCase().includes(search)&&!r.batch.toLowerCase().includes(search))return false;
+    return true;
+  });
+  currentPage=1;
+  renderTable();
+  renderKPIs();
+}
+function clearFilters(){
+  filterState.country=[];filterState.therapy=[];filterState.status=[];
+  document.querySelectorAll('.multi-dropdown input[type=checkbox]').forEach(cb=>cb.checked=false);
+  ['cntBtn','thrBtn','stBtn'].forEach((id,i)=>{
+    document.getElementById(id).textContent=['Country','Therapy Area','Status'][i];
+    document.getElementById(id).classList.remove('has-selection');
+  });
+  document.getElementById('searchInput').value='';
+  document.getElementById('chipRow').innerHTML='';
+  filteredData=[...RAW_DATA];currentPage=1;
+  renderTable();renderKPIs();
+}
+
+// ============================================================
+// KPIs
+// ============================================================
+function renderKPIs(){
+  const data=filteredData;
+  const expired=data.filter(r=>r.days_to_expiry<=0).length;
+  const critical=data.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=3).length;
+  const warning6=data.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=6).length;
+  const safe=data.filter(r=>r.months_to_expiry>6).length;
+  const totalStock=data.reduce((a,b)=>a+(b.closing_stock||0),0);
+  const totalVal=data.reduce((a,b)=>a+(b.closing_stock||0)*getUnitPrice(b),0);
+  const kpis=[
+    {cls:'danger',label:'Expired Batches',val:expired,sub:'Immediate write-off review',type:'expired'},
+    {cls:'warning',label:'Critical ≤3 mo',val:critical,sub:'Urgent action required',type:'critical'},
+    {cls:'warning',label:'Alert Zone ≤6 mo',val:warning6,sub:'Manager alert triggered',type:'warning'},
+    {cls:'safe',label:'Safe Batches',val:safe,sub:'>6 months to expiry',type:'safe'},
+    {cls:'info',label:'Total Records',val:data.length,sub:'Filtered batch count',type:'total'},
+    {cls:'info',label:'Total Units',val:fmtNum(totalStock),sub:'All closing stock',type:'units'},
+    {cls:'info',label:'Portfolio Value',val:'KES '+fmtNum(Math.round(totalVal/1000))+'K',sub:'~USD '+fmtNum(Math.round(totalVal/USD_RATE/1000))+'K',type:'value'},
+  ];
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`
+    <div class="kpi-card ${k.cls}" onclick="showKPIDetail('${k.type}')">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      <div class="kpi-click-hint">↗ Click for details</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// KPI DETAIL MODAL
+// ============================================================
+function showKPIDetail(type){
+  const data=filteredData;
+  let subset,title;
+  if(type==='expired'){subset=data.filter(r=>r.days_to_expiry<=0);title='💀 Expired Batches';}
+  else if(type==='critical'){subset=data.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=3);title='🔴 Critical — ≤3 Months';}
+  else if(type==='warning'){subset=data.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=6);title='🟡 Alert Zone — ≤6 Months';}
+  else if(type==='safe'){subset=data.filter(r=>r.months_to_expiry>6);title='🟢 Safe Batches';}
+  else if(type==='total'){subset=data;title='📋 All Filtered Batches';}
+  else if(type==='units'){subset=[...data].sort((a,b)=>b.closing_stock-a.closing_stock).slice(0,20);title='📦 Top by Closing Stock';}
+  else{subset=[...data].sort((a,b)=>(b.closing_stock*getUnitPrice(b))-(a.closing_stock*getUnitPrice(a))).slice(0,20);title='💰 Top by Portfolio Value';}
+  if(!subset||!subset.length){openModal(title,'<div style="color:var(--text-muted);padding:12px">No records in this category with current filters.</div>');return;}
+  openModal(title,`
+    <div class="modal-section">
+      <div class="modal-section-title">${subset.length} records</div>
+      <div class="kpi-detail-list">
+        ${subset.map(r=>`
+          <div class="kpi-detail-item" onclick="showDrugDetail('${r.batch}')">
+            <div>
+              <div style="font-weight:600;font-size:12px">${r.generic} ${r.strength}</div>
+              <div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">${r.batch} · ${r.country}</div>
+            </div>
+            <div style="text-align:right">
+              ${statusPill(r)}
+              <div style="font-size:9px;color:var(--text-muted);margin-top:3px">${fmtNum(r.closing_stock)} units</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`);
+}
+
+// ============================================================
+// TABLE
+// ============================================================
+function renderTable(){
+  const start=(currentPage-1)*PAGE_SIZE;
+  const page=filteredData.slice(start,start+PAGE_SIZE);
+  document.getElementById('tableCount').textContent=filteredData.length+' records';
+  if(!page.length){
+    document.getElementById('tableBody').innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">🔍 No records match your filters</td></tr>';
+  } else {
+    document.getElementById('tableBody').innerHTML=page.map(r=>`
+      <tr onclick="showDrugDetail('${r.batch}')">
+        <td style="font-weight:600;color:var(--text)">${r.generic}</td>
+        <td><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent)">${r.batch}</span></td>
+        <td><span class="country-tag ${r.country}">${r.country}</span></td>
+        <td style="color:var(--text-dim);font-size:10px">${r.therapy}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${r.strength}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${fmtDate(r.expiry)}<br><span style="color:var(--text-muted)">${r.days_to_expiry>0?r.months_to_expiry+' mo':Math.abs(r.days_to_expiry)+'d ago'}</span></td>
+        <td>${statusPill(r)}</td>
+        <td style="font-family:'IBM Plex Mono',monospace">${fmtNum(r.closing_stock)}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">KES ${fmtNum(getUnitPrice(r))}</td>
+      </tr>
+    `).join('');
+  }
+  renderPagination();
+}
+function renderPagination(){
+  const tp=Math.ceil(filteredData.length/PAGE_SIZE);
+  if(tp<=1){document.getElementById('pagination').innerHTML='';return;}
+  let h=`<span class="page-info">${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filteredData.length)} of ${filteredData.length}</span>`;
+  h+=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&lt;</button>`;
+  for(let i=Math.max(1,currentPage-2);i<=Math.min(tp,currentPage+2);i++)
+    h+=`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  h+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===tp?'disabled':''}>&gt;</button>`;
+  document.getElementById('pagination').innerHTML=h;
+}
+function goPage(p){currentPage=p;renderTable();}
+
+// ============================================================
+// DRUG DETAIL MODAL
+// ============================================================
+function showDrugDetail(batch){
+  const r=RAW_DATA.find(x=>x.batch===batch);
+  if(!r)return;
+  const up=getUnitPrice(r);
+  const tv=r.closing_stock*up;
+  const siblings=RAW_DATA.filter(x=>x.generic===r.generic);
+  const compareCards=siblings.map(x=>`
+    <div class="compare-card" onclick="showDrugDetail('${x.batch}')">
+      <div style="margin-bottom:4px"><span class="country-tag ${x.country}">${x.country}</span></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);margin-bottom:4px">${x.batch} · ${x.strength}</div>
+      <div class="compare-val">${fmtNum(x.closing_stock)}</div>
+      <div class="compare-sub">units</div>
+      <div class="compare-sub" style="color:var(--accent2);margin-top:2px">KES ${fmtNum(x.closing_stock*getUnitPrice(x))}</div>
+      <div style="margin-top:5px">${statusPill(x)}</div>
+    </div>
+  `).join('');
+  openModal(`💊 ${r.generic} ${r.strength} — ${r.country}`,`
+    <div class="modal-section">
+      <div class="modal-section-title">Batch Information</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Generic Name</div><div class="info-val">${r.generic}</div></div>
+        <div class="info-item"><div class="info-label">Batch No.</div><div class="info-val" style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:11px">${r.batch}</div></div>
+        <div class="info-item"><div class="info-label">Country</div><div class="info-val"><span class="country-tag ${r.country}">${r.country}</span></div></div>
+        <div class="info-item"><div class="info-label">Therapy Area</div><div class="info-val" style="font-size:11px">${r.therapy}</div></div>
+        <div class="info-item"><div class="info-label">Strength</div><div class="info-val">${r.strength}</div></div>
+        <div class="info-item"><div class="info-label">Expiry Date</div><div class="info-val" style="font-family:'IBM Plex Mono',monospace;font-size:11px">${fmtDate(r.expiry)}</div></div>
+        <div class="info-item"><div class="info-label">Days Remaining</div><div class="info-val" style="color:${r.days_to_expiry>0?'var(--safe)':'var(--danger)'}">${r.days_to_expiry>0?r.days_to_expiry+' days':Math.abs(r.days_to_expiry)+' days ago'}</div></div>
+        <div class="info-item"><div class="info-label">Status</div><div class="info-val">${statusPill(r)}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Stock Movement</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Opening Stock</div><div class="info-val">${fmtNum(r.opening_stock)}</div></div>
+        <div class="info-item"><div class="info-label">Inwards</div><div class="info-val" style="color:#86efac">+${fmtNum(r.inwards)}</div></div>
+        <div class="info-item"><div class="info-label">Outwards</div><div class="info-val" style="color:#fca5a5">-${fmtNum(r.outwards)}</div></div>
+        <div class="info-item"><div class="info-label">Closing Stock</div><div class="info-val" style="color:var(--accent)">${fmtNum(r.closing_stock)}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Portfolio Value</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Unit Price</div><div class="info-val" style="color:var(--accent2)">KES ${fmtNum(up)}</div></div>
+        <div class="info-item"><div class="info-label">Total (KES)</div><div class="info-val" style="color:var(--accent2)">KES ${fmtNum(tv)}</div></div>
+        <div class="info-item"><div class="info-label">Total (USD)</div><div class="info-val">USD ${fmtNum(Math.round(tv/USD_RATE))}</div></div>
+        <div class="info-item"><div class="info-label">Net Flow</div><div class="info-val" style="color:${r.inwards>r.outwards?'#86efac':'#fca5a5'}">${r.inwards>r.outwards?'▲ Net In':'▼ Net Out'}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Cross-Country Comparison — ${r.generic}</div>
+      <div class="compare-row">${compareCards}</div>
+    </div>
+  `);
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(title,body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalDirect();});
+
+// ============================================================
+// INVENTORY
+// ============================================================
+function renderInventory(){
+  const maxStock=Math.max(...RAW_DATA.map(r=>r.closing_stock));
+  document.getElementById('invBody').innerHTML=RAW_DATA.map(r=>{
+    const barW=maxStock>0?Math.round((r.closing_stock/maxStock)*50):0;
+    const flow=r.inwards>r.outwards?'<span style="color:#86efac">▲ In</span>':'<span style="color:#fca5a5">▼ Out</span>';
+    return`<tr onclick="showDrugDetail('${r.batch}')">
+      <td style="font-weight:600">${r.generic}</td>
+      <td><span class="country-tag ${r.country}">${r.country}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${r.strength}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent)">${r.batch}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${fmtNum(r.opening_stock)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#86efac">${fmtNum(r.inwards)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:#fca5a5">${fmtNum(r.outwards)}</td>
+      <td><div class="stock-bar-wrap"><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">${fmtNum(r.closing_stock)}</span><div class="stock-bar"><div class="stock-bar-fill" style="width:${barW}%"></div></div></div></td>
+      <td>${flow}</td>
+    </tr>`;
+  }).join('');
+}
+function renderAlerts(){
+  const alerts=RAW_DATA.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=6).sort((a,b)=>a.days_to_expiry-b.days_to_expiry).slice(0,10);
+  document.getElementById('alertList').innerHTML=alerts.length?alerts.map(r=>`
+    <div class="alert-item" onclick="showDrugDetail('${r.batch}')">
+      <div>
+        <div class="alert-drug">${r.generic} ${r.strength}</div>
+        <div class="alert-meta">${r.batch} · ${r.country} · ${fmtDate(r.expiry)} · ${fmtNum(r.closing_stock)} units</div>
+      </div>
+      ${statusPill(r)}
+    </div>
+  `).join(''):'<div style="color:var(--text-muted);font-size:11px">No drugs expiring within 6 months.</div>';
+}
+function renderStockSummary(){
+  const tO=RAW_DATA.reduce((a,b)=>a+(b.opening_stock||0),0);
+  const tI=RAW_DATA.reduce((a,b)=>a+(b.inwards||0),0);
+  const tOu=RAW_DATA.reduce((a,b)=>a+(b.outwards||0),0);
+  const tC=RAW_DATA.reduce((a,b)=>a+(b.closing_stock||0),0);
+  const mx=Math.max(tO,tI,tOu,tC);
+  document.getElementById('stockSummaryChart').innerHTML=`<div class="bar-chart">${[[tO,'Open','#60a5fa'],[tI,'In','#86efac'],[tOu,'Out','#fca5a5'],[tC,'Closing','#00d4aa']].map(([v,l,c])=>`
+    <div class="bar-group"><div class="bar" style="height:${Math.max(4,Math.round(v/mx*90))}px;background:${c}"><span class="bar-val">${fmtNum(v)}</span></div><div class="bar-label">${l}</div></div>
+  `).join('')}</div>`;
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderBarChart(id,data,colorFn){
+  const mx=Math.max(...data.map(d=>d.val));
+  document.getElementById(id).innerHTML=data.map(d=>`
+    <div class="bar-group"><div class="bar" style="height:${Math.max(4,Math.round(d.val/mx*100))}px;background:${colorFn(d)}"><span class="bar-val">${d.val}</span></div><div class="bar-label" title="${d.label}">${d.label}</div></div>
+  `).join('');
+}
+function renderAnalytics(){
+  const byTherapy={};
+  RAW_DATA.forEach(r=>{byTherapy[r.therapy]=(byTherapy[r.therapy]||0)+1;});
+  renderBarChart('therapyChart',Object.entries(byTherapy).map(([k,v])=>({label:k.slice(0,7),val:v})).sort((a,b)=>b.val-a.val),_=>'#00d4aa');
+  const cRisk={};
+  RAW_DATA.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=6).forEach(r=>{cRisk[r.country]=(cRisk[r.country]||0)+1;});
+  renderBarChart('countryRiskChart',Object.entries(cRisk).map(([k,v])=>({label:k,val:v})),d=>d.label==='KENYA'?'#00d4aa':d.label==='UGANDA'?'#f59e0b':'#a78bfa');
+  const br={'Expired':0,'0-3m':0,'3-6m':0,'6-12m':0,'1-2yr':0,'2+yr':0};
+  RAW_DATA.forEach(r=>{
+    if(r.days_to_expiry<=0)br['Expired']++;
+    else if(r.months_to_expiry<=3)br['0-3m']++;
+    else if(r.months_to_expiry<=6)br['3-6m']++;
+    else if(r.months_to_expiry<=12)br['6-12m']++;
+    else if(r.months_to_expiry<=24)br['1-2yr']++;
+    else br['2+yr']++;
+  });
+  const clr={'Expired':'#ef4444','0-3m':'#f97316','3-6m':'#f59e0b','6-12m':'#84cc16','1-2yr':'#22c55e','2+yr':'#00d4aa'};
+  renderBarChart('timelineChart',Object.entries(br).map(([k,v])=>({label:k,val:v})),d=>clr[d.label]||'#60a5fa');
+  const sAgg={};
+  RAW_DATA.forEach(r=>{const k=r.generic.split(' ')[0]+' '+r.strength;sAgg[k]=(sAgg[k]||0)+(r.closing_stock||0);});
+  renderBarChart('stockChart',Object.entries(sAgg).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>({label:k.split(' ')[0],val:Math.round(v)})),_=>'#60a5fa');
+}
+function renderComparison(){
+  const drug=document.getElementById('compareSelect').value;
+  if(!drug){document.getElementById('comparisonPanel').innerHTML='';return;}
+  const rows=RAW_DATA.filter(r=>r.generic===drug);
+  document.getElementById('comparisonPanel').innerHTML=`
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      ${rows.map(r=>`
+        <div class="compare-card" style="flex:1;min-width:140px" onclick="showDrugDetail('${r.batch}')">
+          <div style="margin-bottom:4px"><span class="country-tag ${r.country}">${r.country}</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);margin-bottom:4px">${r.batch} · ${r.strength}</div>
+          <div class="compare-val">${fmtNum(r.closing_stock)}</div>
+          <div class="compare-sub">closing units</div>
+          <div class="compare-sub" style="color:var(--accent2);margin-top:3px">KES ${fmtNum(r.closing_stock*getUnitPrice(r))}</div>
+          <div style="margin-top:6px">${statusPill(r)}</div>
+          <div style="font-size:9px;color:var(--text-muted);margin-top:3px">Expires ${fmtDate(r.expiry)}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ============================================================
+// PORTFOLIO
+// ============================================================
+function renderPortfolio(){
+  const countries=['KENYA','UGANDA','TANZANIA'];
+  const colors={KENYA:'var(--accent)',UGANDA:'var(--accent2)',TANZANIA:'#c4b5fd'};
+  const grandTotal=RAW_DATA.reduce((a,b)=>a+(b.closing_stock||0)*getUnitPrice(b),0);
+  document.getElementById('portfolioGrid').innerHTML=`
+    ${countries.map(c=>{
+      const rows=RAW_DATA.filter(r=>r.country===c);
+      const tv=rows.reduce((a,b)=>a+(b.closing_stock||0)*getUnitPrice(b),0);
+      const tu=rows.reduce((a,b)=>a+(b.closing_stock||0),0);
+      return`<div class="portfolio-card" onclick="showCountryValue('${c}')">
+        <div style="font-size:9px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px"><span class="country-tag ${c}">${c}</span></div>
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:${colors[c]}">KES ${fmtNum(Math.round(tv))}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px">${fmtNum(tu)} units · USD ${fmtNum(Math.round(tv/USD_RATE))}</div>
+        <div class="kpi-click-hint" style="margin-top:6px">↗ Click for breakdown</div>
+      </div>`;
+    }).join('')}
+    <div class="portfolio-card" style="border-color:var(--accent)">
+      <div style="font-size:9px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;color:var(--accent);margin-bottom:6px">TOTAL — ALL COUNTRIES</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent)">KES ${fmtNum(Math.round(grandTotal))}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:3px">${fmtNum(RAW_DATA.reduce((a,b)=>a+(b.closing_stock||0),0))} units · USD ${fmtNum(Math.round(grandTotal/USD_RATE))}</div>
+    </div>
+  `;
+  document.getElementById('valueBody').innerHTML=[...RAW_DATA].sort((a,b)=>(b.closing_stock*getUnitPrice(b))-(a.closing_stock*getUnitPrice(a))).map(r=>{
+    const up=getUnitPrice(r),tv=r.closing_stock*up;
+    return`<tr onclick="showDrugDetail('${r.batch}')">
+      <td style="font-weight:600">${r.generic}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:10px">${r.strength}</td>
+      <td><span class="country-tag ${r.country}">${r.country}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace">${fmtNum(r.closing_stock)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent2)">KES ${fmtNum(up)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--accent2)">KES ${fmtNum(tv)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--text-dim)">USD ${fmtNum(Math.round(tv/USD_RATE))}</td>
+    </tr>`;
+  }).join('');
+}
+function showCountryValue(country){
+  const rows=RAW_DATA.filter(r=>r.country===country).sort((a,b)=>(b.closing_stock*getUnitPrice(b))-(a.closing_stock*getUnitPrice(a)));
+  const tv=rows.reduce((a,b)=>a+(b.closing_stock||0)*getUnitPrice(b),0);
+  openModal(`💰 ${country} — Portfolio Breakdown`,`
+    <div class="modal-section">
+      <div class="modal-section-title">Summary</div>
+      <div class="info-grid">
+        <div class="info-item"><div class="info-label">Total (KES)</div><div class="info-val" style="color:var(--accent2)">KES ${fmtNum(Math.round(tv))}</div></div>
+        <div class="info-item"><div class="info-label">Total (USD)</div><div class="info-val">USD ${fmtNum(Math.round(tv/USD_RATE))}</div></div>
+        <div class="info-item"><div class="info-label">Batches</div><div class="info-val">${rows.length}</div></div>
+        <div class="info-item"><div class="info-label">Total Units</div><div class="info-val">${fmtNum(rows.reduce((a,b)=>a+(b.closing_stock||0),0))}</div></div>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Top Drugs by Value</div>
+      <div class="kpi-detail-list">
+        ${rows.map(r=>{const v=r.closing_stock*getUnitPrice(r);return`
+          <div class="kpi-detail-item" onclick="showDrugDetail('${r.batch}')">
+            <div>
+              <div style="font-weight:600;font-size:12px">${r.generic} ${r.strength}</div>
+              <div style="font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">${r.batch} · ${fmtNum(r.closing_stock)} units @ KES ${fmtNum(getUnitPrice(r))}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="color:var(--accent2);font-weight:600;font-family:'IBM Plex Mono',monospace">KES ${fmtNum(v)}</div>
+              <div style="font-size:9px;color:var(--text-muted)">USD ${fmtNum(Math.round(v/USD_RATE))}</div>
+            </div>
+          </div>`}).join('')}
+      </div>
+    </div>`);
+}
+
+// ============================================================
+// EMAIL ALERTS (EmailJS)
+// ============================================================
+function renderAlertPreview(){
+  const threshold=parseInt(document.getElementById('alertThreshold')?.value||6);
+  let subset;
+  if(threshold===0) subset=RAW_DATA.filter(r=>r.days_to_expiry<=0);
+  else subset=RAW_DATA.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=threshold);
+  subset.sort((a,b)=>a.days_to_expiry-b.days_to_expiry);
+  if(!subset.length){
+    document.getElementById('alertPreview').innerHTML='<div style="color:var(--text-muted);font-size:11px">No batches match the selected threshold.</div>';
+    return;
+  }
+  document.getElementById('alertPreview').innerHTML=subset.map(r=>`
+    <div class="alert-item" onclick="showDrugDetail('${r.batch}')">
+      <div>
+        <div class="alert-drug">${r.generic} ${r.strength}</div>
+        <div class="alert-meta">${r.batch} · ${r.country} · Expires ${fmtDate(r.expiry)} · ${fmtNum(r.closing_stock)} units</div>
+      </div>
+      ${statusPill(r)}
+    </div>
+  `).join('');
+}
+document.getElementById('alertThreshold')?.addEventListener('change',renderAlertPreview);
+
+function buildEmailBody(){
+  const threshold=parseInt(document.getElementById('alertThreshold').value);
+  let subset;
+  if(threshold===0) subset=RAW_DATA.filter(r=>r.days_to_expiry<=0);
+  else subset=RAW_DATA.filter(r=>r.days_to_expiry>0&&r.months_to_expiry<=threshold);
+  subset.sort((a,b)=>a.days_to_expiry-b.days_to_expiry);
+  if(!subset.length)return null;
+  const lines=subset.map(r=>`• ${r.generic} ${r.strength} | ${r.batch} | ${r.country} | Exp: ${fmtDate(r.expiry)} | ${fmtNum(r.closing_stock)} units | ${getStatus(r).toUpperCase()}`).join('\n');
+  const thresholdLabel=threshold===0?'Expired only':`Expiring ≤ ${threshold} months`;
+  return{count:subset.length,lines,thresholdLabel};
+}
+
+function sendAlertEmail(){
+  const email=document.getElementById('alertEmail').value.trim();
+  const name=document.getElementById('alertName').value.trim()||'PharmaTrack User';
+  const statusEl=document.getElementById('alertStatus');
+  statusEl.className='alert-status';
+  statusEl.style.display='none';
+
+  if(!email||!email.includes('@')){
+    statusEl.textContent='⚠️ Please enter a valid email address.';
+    statusEl.className='alert-status error';return;
+  }
+
+  const body=buildEmailBody();
+  if(!body){
+    statusEl.textContent='ℹ️ No batches match the selected threshold — nothing to send.';
+    statusEl.className='alert-status error';return;
+  }
+
+  // Check if EmailJS is configured
+  if(EMAILJS_CONFIG.publicKey==='YOUR_PUBLIC_KEY'){
+    // Show a preview instead — useful for portfolio demo
+    statusEl.textContent=`✅ Demo mode: Email would be sent to ${email} with ${body.count} at-risk batches (${body.thresholdLabel}). To activate real sending, configure EMAILJS_CONFIG in the source code.`;
+    statusEl.className='alert-status success';return;
+  }
+
+  // Load EmailJS SDK and send
+  const btn=document.querySelector('.alert-send-btn');
+  btn.disabled=true;btn.textContent='Sending…';
+  const script=document.createElement('script');
+  script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  script.onload=function(){
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+    emailjs.send(EMAILJS_CONFIG.serviceId,EMAILJS_CONFIG.templateId,{
+      to_email:email,
+      to_name:name,
+      subject:`PharmaTrack EA — ${body.count} Batches Require Attention (${body.thresholdLabel})`,
+      dashboard_date:TODAY.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}),
+      threshold_label:body.thresholdLabel,
+      batch_count:body.count,
+      batch_list:body.lines,
+      sender_name:'PharmaTrack EA Dashboard',
+    }).then(()=>{
+      statusEl.textContent=`✅ Alert sent to ${email} — ${body.count} batches reported.`;
+      statusEl.className='alert-status success';
+      btn.disabled=false;btn.textContent='📧 Send Alert Now';
+    }).catch(err=>{
+      statusEl.textContent=`❌ Failed to send: ${err.text||'Check your EmailJS config.'}`;
+      statusEl.className='alert-status error';
+      btn.disabled=false;btn.textContent='📧 Send Alert Now';
+    });
+  };
+  document.head.appendChild(script);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['expiry','inventory','analytics','portfolio','alerts'][i]===name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='analytics')renderAnalytics();
+  if(name==='inventory'){renderInventory();renderAlerts();renderStockSummary();}
+  if(name==='portfolio')renderPortfolio();
+  if(name==='alerts')renderAlertPreview();
+}
+
+// INIT
+renderKPIs();
+applyFilters();
+</script>
+</body>
+</html>
