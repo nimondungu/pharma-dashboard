@@ -1,8 +1,8 @@
 # 💊 PharmaTrack EA
 
-PharmaTrack EA — A personal frontend project simulating real-world pharma
+PharmaTrack EA - A personal frontend project simulating real-world pharma
 stock intelligence across East Africa. Built in vanilla HTML5, CSS3 &
-JavaScript — covers expiry tracking, inventory flow & KES/USD portfolio
+JavaScript - covers expiry tracking, inventory flow & KES/USD portfolio
 valuation. Features reactive KPIs, drill-down modals, cross-country
 comparisons, email alerts, 5 themes & mobile-ready.
 
